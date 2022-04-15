@@ -11,7 +11,7 @@ from dqn import DQN
 
 from cartpole_agent import CartpoleAgent
 from cartpole_model import CartPoleModel
-from replay_memory import ReplayMemory
+from CartPole.replay_memory import ReplayMemory
 
 LEARN_FREQ = 5
 MEMORY_SIZE = 200000
@@ -30,7 +30,7 @@ def run_train_episode(agent, env, rpm):
         action = agent.sample(obs)
         next_obs, reward, done, _ = env.step(action)
         rpm.append(obs, action, reward, next_obs, done)
-
+        print(next_obs)
         if(len(rpm) > MEMORY_WARMUP_SIZE) and (step % LEARN_FREQ == 0):
             batch_obs, batch_action, batch_reward, batch_next_obs, batch_done = rpm.sample_batch(BATCH_SIZE)
             train_loss = agent.learn(batch_obs, batch_action, batch_reward, batch_next_obs, batch_done)
