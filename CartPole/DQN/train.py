@@ -1,5 +1,7 @@
 import numpy as np
 import gym
+from torch.utils.tensorboard import SummaryWriter
+
 from dqn import DQN
 # 1. Define some Hyper Parameters
 # BATCH_SIZE = 32  # batch size of sampling process from buffer
@@ -20,13 +22,15 @@ BATCH_SIZE = 64
 LEARNING_RATE = 0.0005
 GAMMA = 0.99
 
-
+writer = SummaryWriter("logs")
+global_train_step = 0
 def run_train_episode(agent, env, rpm):
     total_reward = 0
     obs = env.reset()
     step = 0
     while True:
         step += 1
+        global global_train_step
         action = agent.sample(obs)
         next_obs, reward, done, _ = env.step(action)
         rpm.append(obs, action, reward, next_obs, done)
@@ -34,7 +38,8 @@ def run_train_episode(agent, env, rpm):
         if(len(rpm) > MEMORY_WARMUP_SIZE) and (step % LEARN_FREQ == 0):
             batch_obs, batch_action, batch_reward, batch_next_obs, batch_done = rpm.sample_batch(BATCH_SIZE)
             train_loss = agent.learn(batch_obs, batch_action, batch_reward, batch_next_obs, batch_done)
-
+            global_train_step += 1
+            writer.add_scalar("loss", train_loss, global_train_step)
         total_reward += reward
         obs = next_obs
         if done:
@@ -86,7 +91,7 @@ def main():
 
         eval_reward = run_evaluate_episode(agent, env, render=True)
         print(f"episode = {episode}, test_reward = {eval_reward}")
-
+    writer.close()
 
 if __name__ == '__main__':
     main()
